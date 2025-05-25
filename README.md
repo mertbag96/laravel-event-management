@@ -1,3 +1,3 @@
 ## Laravel Event Management
 
-This is a REST API project built with Laravel.
+This is a RESTful API project with Laravel.
