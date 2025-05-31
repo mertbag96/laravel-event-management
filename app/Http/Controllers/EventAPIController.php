@@ -6,9 +6,9 @@ use App\Models\Event;
 
 use Illuminate\Http\Response;
 
-use Illuminate\Support\Collection;
-
 use App\Http\Controllers\Controller;
+
+use App\Http\Resources\EventResource;
 
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
@@ -17,44 +17,47 @@ class EventAPIController extends Controller
 {
     /**
      * Display a listing of the resource.
-     * @return Collection<Event>
      */
-    public function index(): Collection
+    public function index()
     {
-        return Event::all();
+        $events = Event::with('user', 'attendees')->get();
+
+        return EventResource::collection($events);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreEventRequest $request): Event
+    public function store(StoreEventRequest $request)
     {
         $event = Event::create([
             'user_id' => 1,
             ...$request->validated()
         ]);
 
-        return $event;
+        $event->load('user');
+
+        return new EventResource($event);
     }
 
     /**
      * Display the specified resource.
-     * @param Event $event
-     * @return Event
      */
-    public function show(Event $event): Event
+    public function show(Event $event)
     {
-        return $event;
+        $event->load('user', 'attendees');
+
+        return new EventResource($event);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateEventRequest $request, Event $event): Event
+    public function update(UpdateEventRequest $request, Event $event)
     {
         $event->update($request->validated());
 
-        return $event;
+        return new EventResource($event);
     }
 
     /**
