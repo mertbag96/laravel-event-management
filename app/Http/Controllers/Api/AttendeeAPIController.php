@@ -10,11 +10,16 @@ use Illuminate\Http\Response;
 
 use App\Http\Traits\APITrait;
 
+use Illuminate\Support\Facades\Gate;
+
 use App\Http\Controllers\Controller;
 
 use App\Http\Resources\AttendeeResource;
 
-class AttendeeAPIController extends Controller
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Routing\Controllers\HasMiddleware;
+
+class AttendeeAPIController extends Controller implements HasMiddleware
 {
     use APITrait;
 
@@ -23,6 +28,15 @@ class AttendeeAPIController extends Controller
      * @var array
      */
     private array $relationships = ['user'];
+
+    /**
+     * Define the middleware for this controller.
+     * @return array<Middleware>
+     */
+    public static function middleware(): array
+    {
+        return [(new Middleware('auth:sanctum'))->except(['index', 'show', 'update'])];
+    }
 
     /**
      * Display a listing of the resource.
@@ -63,8 +77,10 @@ class AttendeeAPIController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $event, Attendee $attendee): Response
+    public function destroy(Event $event, Attendee $attendee): Response
     {
+        Gate::authorize('delete-attendee', [$event, $attendee]);
+
         $attendee->delete();
 
         return response(status: 204);

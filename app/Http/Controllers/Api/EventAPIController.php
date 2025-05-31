@@ -8,6 +8,8 @@ use Illuminate\Http\Response;
 
 use App\Http\Traits\APITrait;
 
+use Illuminate\Support\Facades\Gate;
+
 use App\Http\Controllers\Controller;
 
 use App\Http\Resources\EventResource;
@@ -79,6 +81,8 @@ class EventAPIController extends Controller implements HasMiddleware
      */
     public function update(UpdateEventRequest $request, Event $event)
     {
+        Gate::authorize('update-event', $event);
+
         $event->update($request->validated());
 
         $resource = $this->loadRelationships($event, ['user']);
