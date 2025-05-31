@@ -8,20 +8,32 @@ use App\Models\Attendee;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
+use App\Http\Traits\APITrait;
+
 use App\Http\Controllers\Controller;
 
 use App\Http\Resources\AttendeeResource;
 
 class AttendeeAPIController extends Controller
 {
+    use APITrait;
+
+    /**
+     * The relationships to load for the Attendee resource.
+     * @var array
+     */
+    private array $relationships = ['user'];
+
     /**
      * Display a listing of the resource.
      */
     public function index(Event $event)
     {
-        $attendees = $event->attendees()->get();
+        $query = $this->loadRelationships($event->attendees());
 
-        return AttendeeResource::collection($attendees);
+        $resource = $query->get();
+
+        return AttendeeResource::collection($resource);
     }
 
     /**
@@ -33,7 +45,9 @@ class AttendeeAPIController extends Controller
             'user_id' => 1,
         ]);
 
-        return new AttendeeResource($attendee);
+        $resource = $this->loadRelationships($attendee);
+
+        return new AttendeeResource($resource);
     }
 
     /**
@@ -41,7 +55,9 @@ class AttendeeAPIController extends Controller
      */
     public function show(Event $event, Attendee $attendee)
     {
-        return new AttendeeResource($attendee);
+        $resource = $this->loadRelationships($attendee);
+
+        return new AttendeeResource($resource);
     }
 
     /**

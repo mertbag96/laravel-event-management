@@ -15,6 +15,14 @@ class AttendeeResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            $this->mergeWhen(!$this->relationLoaded('user'), [
+                'user_id' => $this->user_id,
+            ]),
+            'created_at' => $this->created_at->format('d.m.Y H:i'),
+            'updated_at' => $this->updated_at->format('d.m.Y H:i'),
+            'user' => new UserResource($this->whenLoaded('user')),
+        ];
     }
 }

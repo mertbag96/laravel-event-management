@@ -6,6 +6,8 @@ use App\Models\Event;
 
 use Illuminate\Http\Response;
 
+use App\Http\Traits\APITrait;
+
 use App\Http\Controllers\Controller;
 
 use App\Http\Resources\EventResource;
@@ -15,14 +17,24 @@ use App\Http\Requests\UpdateEventRequest;
 
 class EventAPIController extends Controller
 {
+    use APITrait;
+
+    /**
+     * The relationships to load for the Event resource.
+     * @var array
+     */
+    private array $relationships = ['user', 'attendees', 'attendees.user'];
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $events = Event::with('user', 'attendees')->get();
+        $query = $this->loadRelationships(Event::query());
 
-        return EventResource::collection($events);
+        $resource = $query->get();
+
+        return EventResource::collection($resource);
     }
 
     /**
@@ -35,9 +47,9 @@ class EventAPIController extends Controller
             ...$request->validated()
         ]);
 
-        $event->load('user');
+        $resource = $this->loadRelationships($event, ['user']);
 
-        return new EventResource($event);
+        return new EventResource($resource);
     }
 
     /**
@@ -45,9 +57,9 @@ class EventAPIController extends Controller
      */
     public function show(Event $event)
     {
-        $event->load('user', 'attendees');
+        $resource = $this->loadRelationships($event);
 
-        return new EventResource($event);
+        return new EventResource($resource);
     }
 
     /**
@@ -57,7 +69,9 @@ class EventAPIController extends Controller
     {
         $event->update($request->validated());
 
-        return new EventResource($event);
+        $resource = $this->loadRelationships($event, ['user']);
+
+        return new EventResource($resource);
     }
 
     /**
