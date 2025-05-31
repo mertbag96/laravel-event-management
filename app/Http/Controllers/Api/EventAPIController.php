@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\Event;
 
@@ -15,7 +15,10 @@ use App\Http\Resources\EventResource;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 
-class EventAPIController extends Controller
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Routing\Controllers\HasMiddleware;
+
+class EventAPIController extends Controller implements HasMiddleware
 {
     use APITrait;
 
@@ -24,6 +27,15 @@ class EventAPIController extends Controller
      * @var array
      */
     private array $relationships = ['user', 'attendees', 'attendees.user'];
+
+    /**
+     * Define the middleware for this controller.
+     * @return array<Middleware>
+     */
+    public static function middleware(): array
+    {
+        return [(new Middleware('auth:sanctum'))->except(['index', 'show'])];
+    }
 
     /**
      * Display a listing of the resource.
@@ -43,7 +55,7 @@ class EventAPIController extends Controller
     public function store(StoreEventRequest $request)
     {
         $event = Event::create([
-            'user_id' => 1,
+            'user_id' => $request->user()->id,
             ...$request->validated()
         ]);
 
