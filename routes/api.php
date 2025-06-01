@@ -12,9 +12,11 @@ Route::post('/logout', [AuthenticationController::class, 'logout'])
     ->middleware('auth:sanctum');
 
 // Event Routes
-Route::apiResource('events', EventAPIController::class);
+Route::apiResource('events', EventAPIController::class)
+    ->middleware('auth:sanctum');
 
 // Attendee Routes
 Route::apiResource('events.attendees', AttendeeAPIController::class)
     ->scoped()
-    ->except(['update']);
+    ->except(['update'])
+    ->middleware('auth:sanctum');

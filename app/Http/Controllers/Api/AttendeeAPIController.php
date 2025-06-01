@@ -16,10 +16,7 @@ use App\Http\Controllers\Controller;
 
 use App\Http\Resources\AttendeeResource;
 
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Routing\Controllers\HasMiddleware;
-
-class AttendeeAPIController extends Controller implements HasMiddleware
+class AttendeeAPIController extends Controller
 {
     use APITrait;
 
@@ -30,19 +27,12 @@ class AttendeeAPIController extends Controller implements HasMiddleware
     private array $relationships = ['user'];
 
     /**
-     * Define the middleware for this controller.
-     * @return array<Middleware>
-     */
-    public static function middleware(): array
-    {
-        return [(new Middleware('auth:sanctum'))->except(['index', 'show', 'update'])];
-    }
-
-    /**
      * Display a listing of the resource.
      */
     public function index(Event $event)
     {
+        Gate::authorize('viewAny', Attendee::class);
+
         $query = $this->loadRelationships($event->attendees());
 
         $resource = $query->get();
@@ -55,6 +45,8 @@ class AttendeeAPIController extends Controller implements HasMiddleware
      */
     public function store(Request $request, Event $event)
     {
+        Gate::authorize('create', Attendee::class);
+
         $attendee = $event->attendees()->create([
             'user_id' => 1,
         ]);
@@ -69,6 +61,8 @@ class AttendeeAPIController extends Controller implements HasMiddleware
      */
     public function show(Event $event, Attendee $attendee)
     {
+        Gate::authorize('view', Attendee::class);
+
         $resource = $this->loadRelationships($attendee);
 
         return new AttendeeResource($resource);
@@ -79,7 +73,7 @@ class AttendeeAPIController extends Controller implements HasMiddleware
      */
     public function destroy(Event $event, Attendee $attendee): Response
     {
-        Gate::authorize('delete-attendee', [$event, $attendee]);
+        Gate::authorize('delete', $attendee);
 
         $attendee->delete();
 

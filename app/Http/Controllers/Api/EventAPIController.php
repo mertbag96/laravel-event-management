@@ -8,19 +8,16 @@ use Illuminate\Http\Response;
 
 use App\Http\Traits\APITrait;
 
-use Illuminate\Support\Facades\Gate;
-
 use App\Http\Controllers\Controller;
+
+use Illuminate\Support\Facades\Gate;
 
 use App\Http\Resources\EventResource;
 
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Routing\Controllers\HasMiddleware;
-
-class EventAPIController extends Controller implements HasMiddleware
+class EventAPIController extends Controller
 {
     use APITrait;
 
@@ -31,19 +28,12 @@ class EventAPIController extends Controller implements HasMiddleware
     private array $relationships = ['user', 'attendees', 'attendees.user'];
 
     /**
-     * Define the middleware for this controller.
-     * @return array<Middleware>
-     */
-    public static function middleware(): array
-    {
-        return [(new Middleware('auth:sanctum'))->except(['index', 'show'])];
-    }
-
-    /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        Gate::authorize('viewAny', Event::class);
+
         $query = $this->loadRelationships(Event::query());
 
         $resource = $query->get();
@@ -56,6 +46,8 @@ class EventAPIController extends Controller implements HasMiddleware
      */
     public function store(StoreEventRequest $request)
     {
+        Gate::authorize('create', Event::class);
+
         $event = Event::create([
             'user_id' => $request->user()->id,
             ...$request->validated()
@@ -71,6 +63,8 @@ class EventAPIController extends Controller implements HasMiddleware
      */
     public function show(Event $event)
     {
+        Gate::authorize('view', Event::class);
+
         $resource = $this->loadRelationships($event);
 
         return new EventResource($resource);
@@ -81,7 +75,7 @@ class EventAPIController extends Controller implements HasMiddleware
      */
     public function update(UpdateEventRequest $request, Event $event)
     {
-        Gate::authorize('update-event', $event);
+        Gate::authorize('update', $event);
 
         $event->update($request->validated());
 
@@ -95,6 +89,8 @@ class EventAPIController extends Controller implements HasMiddleware
      */
     public function destroy(Event $event): Response
     {
+        Gate::authorize('delete', $event);
+
         $event->delete();
 
         return response(status: 204);
