@@ -14,14 +14,14 @@ Route::post('/logout', [AuthenticationController::class, 'logout'])
 
 // User Routes
 Route::apiResource('users', UserAPIController::class)
-    ->middleware('auth:sanctum');
+    ->middleware(['auth:sanctum', 'throttle:10,1']);
 
 // Event Routes
 Route::apiResource('events', EventAPIController::class)
-    ->middleware('auth:sanctum');
+    ->middleware(['auth:sanctum', 'throttle:10,1']);
 
 // Attendee Routes
 Route::apiResource('events.attendees', AttendeeAPIController::class)
     ->scoped()
     ->except(['update'])
-    ->middleware('auth:sanctum');
+    ->middleware(['auth:sanctum', 'throttle:10,1']);
